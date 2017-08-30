@@ -31,18 +31,25 @@ requests).
 
 Command line options:
 
---of            Output filename (there is a default including date/time). 
---nodes         Comma-separated list of nodes
-                (gfz, odc, ethz, resif, ipgp, ingv, noa, koeri, niep, lmu, bgr,
-                iris, ncedc, isp; default: all)
---excludenodes  Comma-separated list of nodes to be excluded (mutually
-                exclusive with --nodes)
---responsesize  Comma-seperated list of target response sizes (small, medium,
-                large, verylarge, huge; default: all)
---services      Comma-separated list of services (get, post, arclink, 
-                federator; default: all)
---email         E-mail address of querying person/institution
---itersmall     Number of iterations for small, medium, large response size
-                (default: 10)
---iterlarge     Number of iterations for verylarge and huge response size
-                (default: 5)
+  --of            Output filename (there is a default including date/time). 
+
+  --nodes         Comma-separated list of nodes
+                  (gfz, odc, ethz, resif, ipgp, ingv, noa, koeri, niep, lmu, 
+                  bgr, iris, ncedc, isp; default: all)
+
+  --excludenodes  Comma-separated list of nodes to be excluded (mutually
+                  exclusive with --nodes)
+
+  --responsesize  Comma-seperated list of target response sizes (small, medium,
+                  large, verylarge, huge; default: all)
+
+  --services      Comma-separated list of services (get, post, arclink, 
+                  federator; default: all)
+
+  --email         E-mail address of querying person/institution
+
+  --itersmall     Number of iterations for small, medium, large response size
+                  (default: 10)
+
+  --iterlarge     Number of iterations for verylarge and huge response size
+                  (default: 5)
