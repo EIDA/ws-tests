@@ -218,15 +218,22 @@ def main():
                                     port=node_par['services']['arclink']\
                                         ['port'],
                                     user=FLAGS.email)
-                                    
-                                st = client.get_waveforms(
-                                    arclink_payload['network'], 
-                                    arclink_payload['station'], 
-                                    arclink_payload['location'], 
-                                    arclink_payload['channel'], 
-                                    UTCDateTime(arclink_payload['starttime']), 
-                                    UTCDateTime(arclink_payload['endtime']))
                                 
+                                with io.BytesIO() as bf:
+                                    client.save_waveforms(
+                                        bf,
+                                        arclink_payload['network'], 
+                                        arclink_payload['station'], 
+                                        arclink_payload['location'], 
+                                        arclink_payload['channel'], 
+                                        UTCDateTime(
+                                            arclink_payload['starttime']), 
+                                        UTCDateTime(
+                                            arclink_payload['endtime']),
+                                        format='MSEED')
+                                        
+                                    length_bytes = len(bf.getvalue())
+                                        
                             except Exception, e:
                                     
                                 error_msg = "Arclink error: %s" % e
@@ -236,12 +243,7 @@ def main():
                             # time it
                             t_end = time.time()
                             t_req = t_end - t_start
-                                
-                            # write to get length in bytes 
-                            with io.BytesIO() as bf:
-                                st.write(bf, format="MSEED")
-                                length_bytes = len(bf.getvalue())
-                                    
+                               
                             store_result(
                                 result[node]['result'], length_bytes, 
                                 t_req, arclink_payload, time_int_category, 
