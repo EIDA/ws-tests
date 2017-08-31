@@ -455,7 +455,9 @@ def main():
     else:
         outpath = outfile
         
-    if not os.path.isdir(os.path.dirname(outpath)):
+    if os.path.dirname(outpath) and not(
+        os.path.isdir(os.path.dirname(outpath))):
+        
         os.makedirs(os.path.dirname(outpath))
         
     with open(outpath, 'w') as fp:

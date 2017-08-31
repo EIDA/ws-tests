@@ -565,8 +565,10 @@ def get_outpath(outfile):
         outpath = os.path.join(FLAGS.od, outfile)
     else:
         outpath = outfile
+    
+    if os.path.dirname(outpath) and not(
+        os.path.isdir(os.path.dirname(outpath))):
         
-    if not os.path.isdir(os.path.dirname(outpath)):
         os.makedirs(os.path.dirname(outpath))
         
     return outpath
