@@ -192,6 +192,7 @@ FILENAME_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6})\.json$')
 
 DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
 DEFINE_string('infile', '', 'Input file')
+DEFINE_string('od', '', 'Output directory')
 
 
 def main():
@@ -408,8 +409,9 @@ def make_compare_plot_allnodes(outfile, data):
     figure.tight_layout()
     
     filename = "{}.{}".format(outfile, FLAGS.backend.lower())
-    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
+    outpath = get_outpath(filename)
     
+    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
     PYPLOT.close(figure)
 
 
@@ -449,8 +451,9 @@ def make_plot_node(outfile, data, node):
     the_ax.set_ylabel(PLOT_ORDINATE)
 
     filename = "{}.{}".format(outfile, FLAGS.backend.lower())
-    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
+    outpath = get_outpath(filename)
     
+    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
     PYPLOT.close(figure)
     
 
@@ -501,8 +504,9 @@ def make_plot_allnodes(outfile, data, title, plot_type, filetail):
 
     filename = "{}_{}_{}.{}".format(
         outfile, plot_type, filetail, FLAGS.backend.lower())
-    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
+    outpath = get_outpath(filename)
     
+    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
     PYPLOT.close(figure)
 
 
@@ -554,7 +558,19 @@ def get_node_name(node):
         
     return name
         
+
+def get_outpath(outfile):
     
+    if FLAGS.od:
+        outpath = os.path.join(FLAGS.od, outfile)
+    else:
+        outpath = outfile
+        
+    if not os.path.isdir(os.path.dirname(outpath)):
+        os.makedirs(os.path.dirname(outpath))
+        
+    return outpath
+        
     
 if __name__ == '__main__':
     main()
