@@ -128,6 +128,7 @@ DEFINE_string(
 DEFINE_string('services', '', 'Comma-separated list of services to be tested:\
     get,post,federator,arclink')
 DEFINE_string('of', '', 'Output file')
+DEFINE_string('od', '', 'Output directory')
 DEFINE_string(
     'email', ARCLINK_USER_EMAIL, 
     'E-mail address of user running the test (for ArcLink)')
@@ -448,8 +449,16 @@ def main():
             OUTFILE_BASE, 
             datetime.datetime.utcnow().strftime(
                 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_SECOND))
+    
+    if FLAGS.od:
+        outpath = os.path.join(FLAGS.od, outfile)
+    else:
+        outpath = outfile
         
-    with open(outfile, 'w') as fp:
+    if not os.path.isdir(os.path.dirname(outpath)):
+        os.makedirs(os.path.dirname(outpath))
+        
+    with open(outpath, 'w') as fp:
         json.dump(result, fp, sort_keys=True, indent=OUTFILE_INDENT)
 
 
