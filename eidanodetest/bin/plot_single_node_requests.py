@@ -133,7 +133,10 @@ UNKNOWN_TEXT_COLOR_LINESTYLE = ('k', '..')
 
 COMBINED_COLORS = ('k', 'r', 'b', 'm')    
 COMBINED_SYMBOLS = ('o', '^', 'v', '<')
-        
+
+LEGEND_ANCHOR_THROUGHPUT = (-0.1, -1.5)
+LEGEND_ANCHOR_LATENCY = (1.0, -1.5)
+
 BIG_TITLE = "dataselect and arclink throughput/latency"
 
 PLOT_ABSCISSA = 'Response size in Bytes'
@@ -147,10 +150,14 @@ PLOT_REFERENCE_LINEWIDTH = 2
 TITLE_FONTSIZE = 10
 LEGEND_ALL_FONTSIZE = 6
 
+PDF_BACKEND_DEFAULT = 'pdf'
+PLOT_XSIZE = 10
+PLOT_YSIZE = 10
 
-PDF_BACKEND = 'PDF'
-PLOT_XSIZE = 8
-PLOT_YSIZE = 8
+#PLOT_BACKENDS = {
+    #'pdf': {'extension': 'pdf'},
+    #'png': {'extension': 'png'}
+#}
 
 PLOTS = {
     'dataselect-get': {
@@ -175,13 +182,15 @@ PLOTS = {
 }
 
  
-matplotlib.use(PDF_BACKEND)
+#matplotlib.use(PDF_BACKEND)
 importlib.import_module('matplotlib.pyplot')
 PYPLOT = sys.modules['matplotlib.pyplot']
 
 SIZE_KEYS = ('small', 'medium', 'large', 'verylarge', 'huge')
 FILENAME_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6})\.json$')
 
+
+DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
 DEFINE_string('infile', '', 'Input file')
 
 
@@ -388,18 +397,18 @@ def make_compare_plot_allnodes(outfile, data):
         # the selected axes must have all curves
         if plot_idx == len(data)-1: 
             the_ax.legend(
-                loc='lower left', bbox_to_anchor=(-0.1, -1.2), 
+                loc='lower left', bbox_to_anchor=LEGEND_ANCHOR_THROUGHPUT, 
                 fontsize=LEGEND_ALL_FONTSIZE)
             
         if plot_idx == len(data)-1: 
             the_ax2.legend(
-                loc='lower right', bbox_to_anchor=(1.0, -1.2), 
+                loc='lower right', bbox_to_anchor=LEGEND_ANCHOR_LATENCY, 
                 fontsize=LEGEND_ALL_FONTSIZE)
     
     figure.tight_layout()
     
-    filename = "{}.pdf".format(outfile)
-    PYPLOT.savefig(filename, format='pdf')
+    filename = "{}.{}".format(outfile, FLAGS.backend.lower())
+    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
     
     PYPLOT.close(figure)
 
@@ -439,8 +448,8 @@ def make_plot_node(outfile, data, node):
     the_ax.set_xlabel(PLOT_ABSCISSA)
     the_ax.set_ylabel(PLOT_ORDINATE)
 
-    filename = "{}.pdf".format(outfile)
-    PYPLOT.savefig(filename, format='pdf')
+    filename = "{}.{}".format(outfile, FLAGS.backend.lower())
+    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
     
     PYPLOT.close(figure)
     
@@ -490,8 +499,9 @@ def make_plot_allnodes(outfile, data, title, plot_type, filetail):
     the_ax.set_xlabel(PLOT_ABSCISSA)
     the_ax.set_ylabel(PLOT_ORDINATE)
 
-    filename = "{}_{}_{}.pdf".format(outfile, plot_type, filetail)
-    PYPLOT.savefig(filename, format='pdf')
+    filename = "{}_{}_{}.{}".format(
+        outfile, plot_type, filetail, FLAGS.backend.lower())
+    PYPLOT.savefig(filename, format=FLAGS.backend.lower())
     
     PYPLOT.close(figure)
 
