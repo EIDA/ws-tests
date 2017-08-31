@@ -151,8 +151,9 @@ TITLE_FONTSIZE = 10
 LEGEND_ALL_FONTSIZE = 6
 
 PDF_BACKEND_DEFAULT = 'pdf'
-PLOT_XSIZE = 10
-PLOT_YSIZE = 10
+
+PLOTSIZE_ONECOLUMN = (8, 8)
+PLOTSIZE_TWOCOLUMNS = (7, 10)
 
 #PLOT_BACKENDS = {
     #'pdf': {'extension': 'pdf'},
@@ -306,7 +307,7 @@ def make_compare_plot_allnodes(outfile, data):
     
     print "plotting all node comparison"
     
-    rcParams['figure.figsize'] = (7, 10)
+    rcParams['figure.figsize'] = PLOTSIZE_TWOCOLUMNS
     
     col_count = 2
     row_count = 1 + len(data) / col_count
@@ -419,7 +420,7 @@ def make_plot_node(outfile, data, node):
     
     print "making all plots for node {}".format(node)
     
-    rcParams['figure.figsize'] = (PLOT_XSIZE, PLOT_YSIZE)
+    rcParams['figure.figsize'] = PLOTSIZE_ONECOLUMN
     
     figure = PYPLOT.figure()
     figure.clf()
@@ -461,7 +462,7 @@ def make_plot_allnodes(outfile, data, title, plot_type, filetail):
     
     print "plotting all nodes for {}".format(plot_type)
     
-    rcParams['figure.figsize'] = (PLOT_XSIZE, PLOT_YSIZE)
+    rcParams['figure.figsize'] = PLOTSIZE_ONECOLUMN
     
     figure = PYPLOT.figure()
     figure.clf()
