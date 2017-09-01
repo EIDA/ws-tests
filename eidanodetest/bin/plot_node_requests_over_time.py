@@ -24,7 +24,10 @@ from gflags import FLAGS
 
 import numpy
 
+# avoid matplotlib X11 display problem when running headless
 import matplotlib
+matplotlib.use('Agg')
+
 from matplotlib import rcParams
 import matplotlib.patches as mpatches
 
