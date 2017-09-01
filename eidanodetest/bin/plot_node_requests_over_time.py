@@ -392,20 +392,23 @@ def make_compare_plot_allnodes(
             #print "plot curve throughput: {}".format(plot_type)
             #print n_res[plot_type]['ord']
             
-            the_ax.plot(
-                days_since_beginning, n_res[plot_type]['ord'],                   
-                color=COMBINED_COLORS[idx], marker=COMBINED_SYMBOLS[idx],
-                markersize=3, label=plot_type)
+            if not(numpy.isnan(n_res[plot_type]['ord']).all()):
+            
+                the_ax.plot(
+                    days_since_beginning, n_res[plot_type]['ord'],                   
+                    color=COMBINED_COLORS[idx], marker=COMBINED_SYMBOLS[idx],
+                    markersize=3, label=plot_type)
                 
             # http methods: latency
-            if plot_type.startswith('dataselect'):
+            if plot_type.startswith('dataselect') and not(
+                numpy.isnan(n_res[plot_type]['ord2']).all()):
                     
                 #print "plot curve latency: {}".format(plot_type)
                 
                 method = plot_type[len('dataselect-'):]
                 label = "latency-{}".format(method)
                 col = PLOTS[plot_type]['latency_color']
-                    
+                
                 the_ax2.plot(
                     days_since_beginning, n_res[plot_type]['ord2'], 
                     color=col, marker='o', linestyle='--', linewidth=1,
