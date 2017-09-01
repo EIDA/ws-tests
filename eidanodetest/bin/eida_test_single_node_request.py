@@ -13,6 +13,7 @@ Uses ObsPy ArcLink client.
 """
 
 import datetime
+import gzip
 import io
 import json
 import os
@@ -34,7 +35,7 @@ from obspy.clients.arclink.client import Client as ArclinkClient
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from eidanodetest import settings
-
+from eidanodetest import utils
 
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_DATE = '%Y%m%d'
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_SECOND = '%Y%m%d-%H%M%S'
@@ -447,22 +448,14 @@ def main():
     if FLAGS.of:
         outfile = FLAGS.of
     else:
-        outfile = "{}_{}.json".format(
+        outfile = "{}_{}.json.gz".format(
             OUTFILE_BASE, 
             datetime.datetime.utcnow().strftime(
                 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_SECOND))
-    
-    if FLAGS.od:
-        outpath = os.path.join(FLAGS.od, outfile)
-    else:
-        outpath = outfile
-        
-    if os.path.dirname(outpath) and not(
-        os.path.isdir(os.path.dirname(outpath))):
-        
-        os.makedirs(os.path.dirname(outpath))
-        
-    with open(outpath, 'w') as fp:
+            
+    outpath = utils.get_outpath(outfile, FLAGS.od)
+
+    with gzip.open(outpath, 'wb') as fp:
         json.dump(result, fp, sort_keys=True, indent=OUTFILE_INDENT)
 
 
