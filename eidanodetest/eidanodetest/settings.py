@@ -47,6 +47,8 @@ EIDA_NODES = {
         'name': 'Orfeus Data Center',
         'services': {
             'arclink': {
+                # as of 2017-09-04:
+                # eida.orfeus-eu.org
                 'server': 'bhlsa02.knmi.nl',
                 'port': 18002},
             'fdsn': {
