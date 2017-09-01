@@ -31,6 +31,8 @@ import matplotlib.patches as mpatches
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from eidanodetest import settings
+from eidanodetest import utils
+
 
 NODES = {
     'gfz': {
@@ -129,10 +131,6 @@ SYMBOLS = (
 COL_IT = itertools.cycle(COLORS)
 SYM_IT = itertools.cycle(SYMBOLS)
 
-EIDA_TEXT_COLOR_LINESTYLE = ('b', '-')
-NON_EIDA_TEXT_COLOR_LINESTYLE = ('c', '--')
-UNKNOWN_TEXT_COLOR_LINESTYLE = ('k', '..')
-
 
 COMBINED_COLORS = ('k', 'r', 'b', 'm')    
 COMBINED_SYMBOLS = ('o', '^', 'v', '<')
@@ -158,10 +156,8 @@ PDF_BACKEND_DEFAULT = 'pdf'
 PLOTSIZE_ONECOLUMN = (8, 8)
 PLOTSIZE_TWOCOLUMNS = (7, 10)
 
-#PLOT_BACKENDS = {
-    #'pdf': {'extension': 'pdf'},
-    #'png': {'extension': 'png'}
-#}
+# 1050 px
+FIG_RESOLUTION_DPI = 150
 
 PLOTS = {
     'dataselect-get': {
@@ -185,13 +181,13 @@ PLOTS = {
     }
 }
 
- 
-#matplotlib.use(PDF_BACKEND)
+
 importlib.import_module('matplotlib.pyplot')
 PYPLOT = sys.modules['matplotlib.pyplot']
 
 SIZE_KEYS = ('small', 'medium', 'large', 'verylarge', 'huge')
-FILENAME_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6})\.json$')
+
+FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
 
 
 DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
@@ -208,11 +204,10 @@ def main():
             "--infile option"
         raise RuntimeError, error_msg
     
-    with open(FLAGS.infile, 'r') as fh:   
-        d = json.load(fh)
+    d = utils.load_json(FLAGS.infile)
     
     # get datetime filename tail
-    m = FILENAME_DATETIME_PATTERN.search(FLAGS.infile)
+    m = FILETAIL_DATETIME_PATTERN.search(FLAGS.infile)
     if m:    
         filetail = m.group(1)
     else:
@@ -413,9 +408,10 @@ def make_compare_plot_allnodes(outfile, data):
     figure.tight_layout()
     
     filename = "{}.{}".format(outfile, FLAGS.backend.lower())
-    outpath = get_outpath(filename)
+    outpath = utils.get_outpath(filename, FLAGS.od)
     
-    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
+    PYPLOT.savefig(
+        outpath, format=FLAGS.backend.lower(), dpi=FIG_RESOLUTION_DPI)
     PYPLOT.close(figure)
 
 
@@ -431,7 +427,7 @@ def make_plot_node(outfile, data, node):
     the_ax = figure.add_subplot(1, 1, 1)
     
     figure.suptitle(
-        "{} ({})".format(get_node_name(node), node.upper()), 
+        "{} ({})".format(utils.get_node_name(node), node.upper()), 
         fontdict={'size': TITLE_FONTSIZE})
 
     for idx, plot_type in enumerate(PLOTS):
@@ -455,9 +451,10 @@ def make_plot_node(outfile, data, node):
     the_ax.set_ylabel(PLOT_ORDINATE)
 
     filename = "{}.{}".format(outfile, FLAGS.backend.lower())
-    outpath = get_outpath(filename)
+    outpath = utils.get_outpath(filename, FLAGS.od)
     
-    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
+    PYPLOT.savefig(
+        outpath, format=FLAGS.backend.lower(), dpi=FIG_RESOLUTION_DPI)
     PYPLOT.close(figure)
     
 
@@ -485,7 +482,7 @@ def make_plot_allnodes(outfile, data, title, plot_type, filetail):
             
             the_ax.semilogx(
                 n_res[plot_type]['absc'], n_res[plot_type]['ord'], color=col, 
-                linestyle=get_node_text_color_linestyle(node)[1], 
+                linestyle=utils.get_node_text_color_linestyle(node)[1], 
                 marker=sym, label=node)
         
             # some have zero values at end
@@ -508,9 +505,10 @@ def make_plot_allnodes(outfile, data, title, plot_type, filetail):
 
     filename = "{}_{}_{}.{}".format(
         outfile, plot_type, filetail, FLAGS.backend.lower())
-    outpath = get_outpath(filename)
+    outpath = utils.get_outpath(filename, FLAGS.od)
     
-    PYPLOT.savefig(outpath, format=FLAGS.backend.lower())
+    PYPLOT.savefig(
+        outpath, format=FLAGS.backend.lower(), dpi=FIG_RESOLUTION_DPI)
     PYPLOT.close(figure)
 
 
@@ -524,60 +522,16 @@ def put_node_label(the_ax, node, ymax, ymin):
     if NODES[node]['legend_pos'] == 'lr':
         the_ax.text(
             9.0e8, ymin + 0.05 * (ymax - ymin), node, 
-            color=get_node_text_color_linestyle(node)[0], 
+            color=utils.get_node_text_color_linestyle(node)[0], 
             horizontalalignment='right',verticalalignment='bottom')
     
     else:
         the_ax.text(
             1.5e5, 0.9 * ymax, node, 
-            color=get_node_text_color_linestyle(node)[0], 
+            color=utils.get_node_text_color_linestyle(node)[0], 
             horizontalalignment='left',verticalalignment='top')
-        
-        
-def get_node_text_color_linestyle(node):
-    """color: EIDA blue, non-EIDA cyan, unknown black"""
-    
-    if node in settings.EIDA_NODES:
-        color_ls = EIDA_TEXT_COLOR_LINESTYLE
-        
-    elif node in settings.OTHER_SERVERS:    
-        color_ls = NON_EIDA_TEXT_COLOR_LINESTYLE
-        
-    else:
-       color_ls = UNKNOWN_TEXT_COLOR_LINESTYLE
 
-    return color_ls
-   
 
-def get_node_name(node):
-    """Return node name"""
-    
-    name = node
-    
-    if node in settings.EIDA_NODES:
-        name = settings.EIDA_NODES[node]['name']
-    
-    elif node in settings.OTHER_SERVERS:
-        name = settings.OTHER_SERVERS[node]['name']
-        
-    return name
-        
-
-def get_outpath(outfile):
-    
-    if FLAGS.od:
-        outpath = os.path.join(FLAGS.od, outfile)
-    else:
-        outpath = outfile
-    
-    if os.path.dirname(outpath) and not(
-        os.path.isdir(os.path.dirname(outpath))):
-        
-        os.makedirs(os.path.dirname(outpath))
-        
-    return outpath
-        
-    
 if __name__ == '__main__':
     main()
 

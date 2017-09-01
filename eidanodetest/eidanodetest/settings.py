@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 
-EIDA Mediator settings.
+EIDA node settings.
 
-This file is part of the EIDA mediator/federator webservices.
+This file is part of the EIDA webservice performance tests.
 
 """
 

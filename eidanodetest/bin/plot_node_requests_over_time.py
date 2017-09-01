@@ -14,7 +14,6 @@ import datetime
 import glob
 import importlib
 import itertools
-import json
 import os
 import re
 import sys
@@ -34,6 +33,7 @@ import matplotlib.patches as mpatches
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from eidanodetest import settings
+from eidanodetest import utils
 
 
 # only EIDA nodes
@@ -115,9 +115,6 @@ SYMBOLS = (
 COL_IT = itertools.cycle(COLORS)
 SYM_IT = itertools.cycle(SYMBOLS)
 
-EIDA_TEXT_COLOR_LINESTYLE = ('k', '-')
-NON_EIDA_TEXT_COLOR_LINESTYLE = ('c', '--')
-UNKNOWN_TEXT_COLOR_LINESTYLE = ('k', '..')
 
 
 COMBINED_COLORS = ('k', 'r', 'b', 'm')    
@@ -175,9 +172,13 @@ PYPLOT = sys.modules['matplotlib.pyplot']
 
 SIZE_KEYS = ('small', 'medium', 'large', 'verylarge', 'huge')
 
-FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6})\.json$')
+FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
+
 FILENAME_DATETIME_PATTERN = re.compile(
-    r'^.+(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})\.json$')
+    r'^.+(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2}).*$')
+FILENAME_DATETIME_PATTERN_GLOB = '*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-'\
+    '[0-9][0-9][0-9][0-9][0-9][0-9]*'
+
 
 SIZE_KEY = 'large'
 
@@ -186,6 +187,9 @@ DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
 DEFINE_string('id', '', 'Input directory')
 DEFINE_string('od', '', 'Output directory')
 DEFINE_string('of', '', 'Output file')
+DEFINE_string(
+    'requestsize', SIZE_KEY, 
+    'Request size (small, medium, large, verylarge, huge)')
 
 
 def main():
@@ -198,7 +202,7 @@ def main():
         raise RuntimeError, error_msg
     
     source_file_iterator = sorted(
-        glob.glob(os.path.join(FLAGS.id, '*.json')))
+        glob.iglob(os.path.join(FLAGS.id, FILENAME_DATETIME_PATTERN_GLOB)))
     loop_file_count = len(source_file_iterator)
     
     print "looping over %s source files" % loop_file_count
@@ -214,8 +218,7 @@ def main():
                 
     for file_idx, source_path in enumerate(source_file_iterator):
         
-        with open(source_path, 'r') as fh:
-            d = json.load(fh)
+        d = utils.load_json(source_path)
         
         # get datetime filename tail
         m = FILENAME_DATETIME_PATTERN.search(source_path)
@@ -331,7 +334,7 @@ def main():
         outfile = "eida_nodes_over_time_{}.{}".format(
             last_filetail, FLAGS.backend.lower())
         
-    outpath= get_outpath(outfile)
+    outpath= utils.get_outpath(outfile, FLAGS.od)
     make_compare_plot_allnodes(
         outpath, first_timestamp, days_since_beginning, data)
 
@@ -459,54 +462,11 @@ def put_node_label(the_ax, node, xmin, xmax, ymin, ymax):
 
     the_ax.text(
         xmin, ymin, node, 
-        color=get_node_text_color_linestyle(node)[0], 
+        color=utils.get_node_text_color_linestyle(node)[0], 
         horizontalalignment='left',verticalalignment='bottom')
         
-        
-def get_node_text_color_linestyle(node):
-    """color: EIDA blue, non-EIDA cyan, unknown black"""
-    
-    if node in settings.EIDA_NODES:
-        color_ls = EIDA_TEXT_COLOR_LINESTYLE
-        
-    elif node in settings.OTHER_SERVERS:    
-        color_ls = NON_EIDA_TEXT_COLOR_LINESTYLE
-        
-    else:
-       color_ls = UNKNOWN_TEXT_COLOR_LINESTYLE
 
-    return color_ls
-   
 
-def get_node_name(node):
-    """Return node name"""
-    
-    name = node
-    
-    if node in settings.EIDA_NODES:
-        name = settings.EIDA_NODES[node]['name']
-    
-    elif node in settings.OTHER_SERVERS:
-        name = settings.OTHER_SERVERS[node]['name']
-        
-    return name
-        
-
-def get_outpath(outfile):
-    
-    if FLAGS.od:
-        outpath = os.path.join(FLAGS.od, outfile)
-    else:
-        outpath = outfile
-    
-    if os.path.dirname(outpath) and not(
-        os.path.isdir(os.path.dirname(outpath))):
-        
-        os.makedirs(os.path.dirname(outpath))
-        
-    return outpath
-        
-    
 if __name__ == '__main__':
     main()
 
