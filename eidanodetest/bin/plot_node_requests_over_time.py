@@ -18,6 +18,8 @@ import os
 import re
 import sys
 
+from gflags import DEFINE_boolean
+from gflags import DEFINE_integer
 from gflags import DEFINE_string
 from gflags import FLAGS
 
@@ -116,9 +118,11 @@ COL_IT = itertools.cycle(COLORS)
 SYM_IT = itertools.cycle(SYMBOLS)
 
 
-
 COMBINED_COLORS = ('k', 'r', 'b', 'm')    
 COMBINED_SYMBOLS = ('o', '^', 'v', '<')
+
+MARKERSIZE_THROUGHPUT = 3
+MARKERSIZE_LATENCY = 2
 
 LEGEND_ANCHOR_THROUGHPUT = (0.0, -2.0)
 LEGEND_ANCHOR_LATENCY = (1.0, -2.0)
@@ -184,12 +188,18 @@ SIZE_KEY = 'large'
 
 
 DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
+DEFINE_integer('days-after', 0,  'Days after start date')
+DEFINE_integer('days-before', 0,  'Days before end date')
+DEFINE_string('ed', '',  'End date')
 DEFINE_string('id', '', 'Input directory')
 DEFINE_string('od', '', 'Output directory')
 DEFINE_string('of', '', 'Output file')
 DEFINE_string(
     'requestsize', SIZE_KEY, 
     'Request size (small, medium, large, verylarge, huge)')
+DEFINE_string('sd', '', 'Start date')
+
+DEFINE_boolean('markers', False, 'Line with markers')
 
 
 def main():
@@ -201,6 +211,10 @@ def main():
             "--id option"
         raise RuntimeError, error_msg
     
+    # TODO(fab): start date, end date
+    
+    # iterates through files with ascending time stamps
+    # (earliest first)
     source_file_iterator = sorted(
         glob.iglob(os.path.join(FLAGS.id, FILENAME_DATETIME_PATTERN_GLOB)))
     loop_file_count = len(source_file_iterator)
@@ -209,6 +223,7 @@ def main():
     
     data = {}
     timestamps = []
+    files_used = 0
     
     for node in NODES:
         data[node] = dict()
@@ -396,11 +411,16 @@ def make_compare_plot_allnodes(
             #print n_res[plot_type]['ord']
             
             if not(numpy.isnan(n_res[plot_type]['ord']).all()):
-            
+                
+                if FLAGS.markers:
+                    marker = COMBINED_SYMBOLS[idx]
+                else:
+                    marker = None
+                  
                 the_ax.plot(
                     days_since_beginning, n_res[plot_type]['ord'],                   
-                    color=COMBINED_COLORS[idx], marker=COMBINED_SYMBOLS[idx],
-                    markersize=3, label=plot_type)
+                    color=COMBINED_COLORS[idx], marker=marker,
+                    markersize=MARKERSIZE_THROUGHPUT, label=plot_type)
                 
             # http methods: latency
             if plot_type.startswith('dataselect') and not(
@@ -412,10 +432,15 @@ def make_compare_plot_allnodes(
                 label = "latency-{}".format(method)
                 col = PLOTS[plot_type]['latency_color']
                 
+                if FLAGS.markers:
+                    marker = 'o'
+                else:
+                    marker = None
+                
                 the_ax2.plot(
                     days_since_beginning, n_res[plot_type]['ord2'], 
-                    color=col, marker='o', linestyle='--', linewidth=1,
-                    markersize=2, label=label)
+                    color=col, marker=marker, linestyle='--', linewidth=1,
+                    markersize=MARKERSIZE_LATENCY, label=label)
   
         ymin, ymax = the_ax.get_ylim()
         the_ax.set_ylim(0, 1.1 * ymax)
@@ -461,9 +486,8 @@ def put_node_label(the_ax, node, xmin, xmax, ymin, ymax):
     ymin = 0
 
     the_ax.text(
-        xmin, ymin, node, 
-        color=utils.get_node_text_color_linestyle(node)[0], 
-        horizontalalignment='left',verticalalignment='bottom')
+        xmin, ymin, node, color='k', horizontalalignment='left', 
+        verticalalignment='bottom')
         
 
 
