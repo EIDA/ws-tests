@@ -11,6 +11,7 @@ This file is part of the EIDA webservice performance tests.
 from __future__ import unicode_literals
 
 import datetime
+import dateutil
 import glob
 import importlib
 import itertools
@@ -188,16 +189,16 @@ SIZE_KEY = 'large'
 
 
 DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
-DEFINE_integer('days-after', 0,  'Days after start date')
-DEFINE_integer('days-before', 0,  'Days before end date')
-DEFINE_string('ed', '',  'End date')
+DEFINE_integer('daysafter', 0, 'Days after start date')
+DEFINE_integer('daysbefore', 0, 'Days before end date')
+DEFINE_string('enddate', '',  'End date')
 DEFINE_string('id', '', 'Input directory')
 DEFINE_string('od', '', 'Output directory')
 DEFINE_string('of', '', 'Output file')
 DEFINE_string(
     'requestsize', SIZE_KEY, 
     'Request size (small, medium, large, verylarge, huge)')
-DEFINE_string('sd', '', 'Start date')
+DEFINE_string('startdate', '', 'Start date')
 
 DEFINE_boolean('markers', False, 'Line with markers')
 
@@ -210,20 +211,57 @@ def main():
         error_msg = "you need to specify an input directory name with the "\
             "--id option"
         raise RuntimeError, error_msg
-    
-    # TODO(fab): start date, end date
-    
+
     # iterates through files with ascending time stamps
     # (earliest first)
     source_file_iterator = sorted(
         glob.iglob(os.path.join(FLAGS.id, FILENAME_DATETIME_PATTERN_GLOB)))
     loop_file_count = len(source_file_iterator)
     
-    print "looping over %s source files" % loop_file_count
+    first_timestamp = get_timestamp_from_filename(source_file_iterator[0])
+    last_timestamp = get_timestamp_from_filename(source_file_iterator[-1])
+    
+    print "checking {} source files from {} until {}".format(
+        loop_file_count, first_timestamp, last_timestamp)
+    
+    if FLAGS.startdate:
+        if FLAGS.daysbefore > 0:
+            error_msg = "--daysbefore is mutually exclusive with --startdate"
+            raise RuntimeError, error_msg
+        
+        first_timestamp = dateutil.parser.parse(FLAGS.startdate)
+        
+    if FLAGS.enddate:
+        if FLAGS.daysafter > 0:
+            error_msg = "--daysafter is mutually exclusive with --enddate"
+            raise RuntimeError, error_msg
+        
+        last_timestamp = dateutil.parser.parse(FLAGS.enddate)
+    
+    if FLAGS.daysbefore > 0:
+        if FLAGS.daysafter > 0:
+            error_msg = "--daysafter is mutually exclusive with --daysbefore"
+            
+        first_timestamp = last_timestamp - datetime.timedelta(
+            days=FLAGS.daysbefore)
+        
+    if FLAGS.daysafter > 0:
+        if FLAGS.daysbefore > 0:
+            error_msg = "--daysafter is mutually exclusive with --daysbefore"
+            
+        last_timestamp = first_timestamp + datetime.timedelta(
+            days=FLAGS.daysafter)
+    
+    if first_timestamp > last_timestamp:
+        error_msg = "illegal time interval: start {}, end {}".format(
+            first_timestamp, last_timestamp)
+        raise RuntimeError, error_msg
+    
+    print "requested time interval: from {} until {}".format(
+        first_timestamp, last_timestamp)
     
     data = {}
     timestamps = []
-    files_used = 0
     
     for node in NODES:
         data[node] = dict()
@@ -233,25 +271,18 @@ def main():
                 
     for file_idx, source_path in enumerate(source_file_iterator):
         
-        d = utils.load_json(source_path)
-        
         # get datetime filename tail
-        m = FILENAME_DATETIME_PATTERN.search(source_path)
-        
-        # tzinfo=timezones.UTC
-        timestamp = datetime.datetime(
-            year=int(m.group(1)),
-            month=int(m.group(2)),
-            day=int(m.group(3)),
-            hour=int(m.group(4)),
-            minute=int(m.group(5)),
-            second=int(m.group(6)))
+        timestamp = get_timestamp_from_filename(source_path)
+
+        # check if timestamp in valid range
+        if not is_valid_timestamp(timestamp, first_timestamp, last_timestamp):
+            continue
         
         timestamps.append(timestamp)
 
-        if file_idx == loop_file_count - 1:
-            last_filetail = FILETAIL_DATETIME_PATTERN.search(
-                source_path).group(1)
+        last_filetail = FILETAIL_DATETIME_PATTERN.search(source_path).group(1)
+            
+        d = utils.load_json(source_path)
         
         for node, n_res in d.items():
                 
@@ -333,15 +364,21 @@ def main():
                     data[node][plot_type]['ord'].append(throughput)
     
     # abscissae
-    first_date = timestamps[0].date()
-    first_timestamp = datetime.datetime(
-        first_date.year, first_date.month, first_date.day, 0, 0, 0) - \
-            datetime.timedelta(days=1)
+    abscissa_start = timestamps[0].date()
+    abscissa_start_timestamp = datetime.datetime(
+        abscissa_start.year, abscissa_start.month, abscissa_start.day, 0, 0, 
+        0) - datetime.timedelta(days=1)
     days_since_beginning = []
+    
     for ts in timestamps:
-        timediff = ts - first_timestamp
+        timediff = ts - abscissa_start_timestamp
         frac_days = timediff.days + float(timediff.seconds) / (60 * 60 * 24)
         days_since_beginning.append(frac_days)
+        
+    print "using {} data points from {} until {}, abscissa starts at "\
+        "{}".format(
+            len(timestamps), timestamps[0], timestamps[-1], 
+            abscissa_start_timestamp)
     
     if FLAGS.of:
         outfile = FLAGS.of
@@ -351,7 +388,7 @@ def main():
         
     outpath= utils.get_outpath(outfile, FLAGS.od)
     make_compare_plot_allnodes(
-        outpath, first_timestamp, days_since_beginning, data)
+        outpath, abscissa_start_timestamp, days_since_beginning, data)
 
 
 def make_compare_plot_allnodes(
@@ -488,7 +525,27 @@ def put_node_label(the_ax, node, xmin, xmax, ymin, ymax):
     the_ax.text(
         xmin, ymin, node, color='k', horizontalalignment='left', 
         verticalalignment='bottom')
+
+
+def get_timestamp_from_filename(path):
+    
+    # get datetime filename tail
+    m = FILENAME_DATETIME_PATTERN.search(path)
         
+    # tzinfo=timezones.UTC
+    timestamp = datetime.datetime(
+        year=int(m.group(1)),
+        month=int(m.group(2)),
+        day=int(m.group(3)),
+        hour=int(m.group(4)),
+        minute=int(m.group(5)),
+        second=int(m.group(6)))
+    
+    return timestamp
+
+
+def is_valid_timestamp(timestamp, first, last):
+    return (timestamp >= first and timestamp <= last)
 
 
 if __name__ == '__main__':
