@@ -34,7 +34,7 @@ Command line options:
   `--od`            Output directory (default: current directory).
                     
   `--of`            Output filename (there is a default including date/time).
-                    Should have the extension .json.gz in order to make plot
+                    Should have the extension `.json.gz? in order to make plot
                     tool work. 
 
   `--nodes`         Comma-separated list of nodes
@@ -80,15 +80,26 @@ plot_node_requests_over_time.py
 Command line options:
 
   `--id`            Input directory (required).
-  `--od`            Output directory (default: current directory).                  
-  `--of`            Output filename.
-  `--backend`       Plot backend (from installed matplotlib backends).
+  
+  `--od`            Output directory (default: current directory).
+  
+  `--of`            Output filename (should have proper extension for chosen
+                    plotting backend).
+  
+  `--backend`       Plotting backend (from installed matplotlib backends,
+                    default: pdf).
+  
   `--daysafter`     Days to plot after starting date.
+  
   `--daysbefore`    Days to plot before end date.
+  
   `--startdate`     Plot data starting from this date (YYYY-MM-DD)
+  
   `--enddate`       Plot data until this date (YYYY-MM-DD)
+  
   `--requestsize`   Response size for which data is plotted (from: small, 
                     medium, large, verylarge, huge)
+                    
   `--markers`       Show data markers in plot.
 
 
