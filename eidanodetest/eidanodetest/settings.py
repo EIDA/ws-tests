@@ -12,7 +12,7 @@ import os
 
 # NOTE: arclink servers/ports are from
 # http://eida.gfz-potsdam.de/eida/status/master_table.php
-# (last accessed 2017-08-17)
+# (last accessed 2017-09-05)
 EIDA_NODES = {
     'gfz': {
         'name': 'Deutsches GeoForschungsZentrum Potsdam',
@@ -47,9 +47,9 @@ EIDA_NODES = {
         'name': 'Orfeus Data Center',
         'services': {
             'arclink': {
-                # as of 2017-09-04:
-                # eida.orfeus-eu.org
-                'server': 'bhlsa02.knmi.nl',
+                # was (until 2017-09-04):
+                # bhlsa02.knmi.nl
+                'server': 'eida.orfeus-eu.org',
                 'port': 18002},
             'fdsn': {
                 'server': 'http://www.orfeus-eu.org',
