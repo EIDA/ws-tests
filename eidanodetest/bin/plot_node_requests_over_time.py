@@ -278,11 +278,15 @@ def main():
         if not is_valid_timestamp(timestamp, first_timestamp, last_timestamp):
             continue
         
+        try:
+            d = utils.load_json(source_path)
+        except Exception:
+            print "WARNING: {} is not a valid (gzipped) JSON file".format(
+                os.path.basename(source_path))
+            continue
+        
         timestamps.append(timestamp)
-
         last_filetail = FILETAIL_DATETIME_PATTERN.search(source_path).group(1)
-            
-        d = utils.load_json(source_path)
         
         for node, n_res in d.items():
                 
