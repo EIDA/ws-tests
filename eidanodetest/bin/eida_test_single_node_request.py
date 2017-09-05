@@ -17,6 +17,7 @@ import gzip
 import io
 import json
 import os
+import random
 import requests
 import sys
 import time
@@ -580,7 +581,11 @@ def node_generator():
     
     global COMMANDLINE_PAR
     
-    for node in COMMANDLINE_PAR['the_node_list']:
+    # shuffle order
+    nodes = list(COMMANDLINE_PAR['the_node_list'])
+    random.shuffle(nodes)
+    
+    for node in nodes:
     
         node_par = get_node_par(node)
         
