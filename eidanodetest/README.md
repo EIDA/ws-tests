@@ -34,7 +34,7 @@ Command line options:
   `--od`            Output directory (default: current directory).
                     
   `--of`            Output filename (there is a default including date/time).
-                    Should have the extension `.json.gz? in order to make plot
+                    Should have the extension `.json.gz` in order to make plot
                     tool work. 
 
   `--nodes`         Comma-separated list of nodes
