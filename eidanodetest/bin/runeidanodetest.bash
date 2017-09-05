@@ -20,15 +20,15 @@ sleep 5;
 
 # all data
 python ${DEPLOYDIR}/plot_node_requests_over_time.py \
-	--id=${DATADIR} \
-	--od=${PLOTDIR} \
-	--of=eida_node_performance_over_time_all.png \
-	--backend=png
+    --id=${DATADIR} \
+    --od=${PLOTDIR} \
+    --of=eida_node_performance_over_time_all.png \
+    --backend=png
 
 # data of last 60 days
 python ${DEPLOYDIR}/plot_node_requests_over_time.py \
-        --id=${DATADIR} \
-        --od=${PLOTDIR} \
-        --of=eida_node_performance_over_time_last_60_days.png \
-	--daysbefore=60 \
-        --backend=png --markers
+    --id=${DATADIR} \
+    --od=${PLOTDIR} \
+    --of=eida_node_performance_over_time_last_60_days.png \
+    --daysbefore=60 \
+    --backend=png --markers

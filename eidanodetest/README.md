@@ -16,14 +16,14 @@ the number of tested servers, response sizes, iterations for each request, and
 tested methods/services (fdsnws-dataselect GET/POST, ArcLink, EIDA Federator,
 see description of command line parameters below).
 
-Resulting statistics on the test queries is written to a result JSON file
-(file is only written after all queries, so be sure to wait until all requests
-have been performed).
+Resulting statistics on the test queries is written to a result 
+gzipped JSON file (file is only written after all queries, so be sure to wait 
+until all requests have been performed).
 
 The full suite can be run as follows:
 
 ````
-python eida_test_single_node_request.py --email=fabian@sed.ethz.ch
+python eida_test_single_node_request.py --email=jane.doe@example.com
 ````
 
 Please use your own e-mail address (this is only relevant for ArcLink 
@@ -31,25 +31,80 @@ requests).
 
 Command line options:
 
-  --of            Output filename (there is a default including date/time). 
+  `--od`            Output directory (default: current directory).
+                    
+  `--of`            Output filename (there is a default including date/time).
+                    Should have the extension .json.gz in order to make plot
+                    tool work. 
 
-  --nodes         Comma-separated list of nodes
-                  (gfz, odc, ethz, resif, ipgp, ingv, noa, koeri, niep, lmu, 
-                  bgr, iris, ncedc, isp; default: all)
+  `--nodes`         Comma-separated list of nodes
+                    (gfz, odc, ethz, resif, ipgp, ingv, noa, koeri, niep, lmu, 
+                    bgr, iris, ncedc, isp; default: all)
 
-  --excludenodes  Comma-separated list of nodes to be excluded (mutually
-                  exclusive with --nodes)
+  `--excludenodes`  Comma-separated list of nodes to be excluded (mutually
+                    exclusive with --nodes)
 
-  --responsesize  Comma-seperated list of target response sizes (small, medium,
-                  large, verylarge, huge; default: all)
+  `--responsesize`  Comma-seperated list of target response sizes (small, 
+                    medium, large, verylarge, huge; default: all)
 
-  --services      Comma-separated list of services (get, post, arclink, 
-                  federator; default: all)
+  `--services`      Comma-separated list of services (get, post, arclink, 
+                    federator; default: all)
 
-  --email         E-mail address of querying person/institution
+  `--email`         E-mail address of querying person/institution
 
-  --itersmall     Number of iterations for small, medium, large response size
-                  (default: 10)
+  `--itersmall`     Number of iterations for small, medium, large response size
+                    (default: 10)
 
-  --iterlarge     Number of iterations for verylarge and huge response size
-                  (default: 5)
+  `--iterlarge`     Number of iterations for verylarge and huge response size
+                    (default: 5)
+
+Example call:
+
+````
+python eida_test_single_node_request.py --responsesize=large \
+    --excludenodes=iris,ncedc,usp \
+    --services=post,arclink,federator --email=jane.doe@example.com \
+    --itersmall=6 \
+    --od=/path/to/resultfiles
+````
+
+Plotting of results over time
+-----------------------------
+
+Result files are in `/path/to/resultfiles`, plots go to `/path/to/plots`.
+
+````
+plot_node_requests_over_time.py
+````
+
+Command line options:
+
+  `--id`            Input directory (required).
+  `--od`            Output directory (default: current directory).                  
+  `--of`            Output filename.
+  `--backend`       Plot backend (from installed matplotlib backends).
+  `--daysafter`     Days to plot after starting date.
+  `--daysbefore`    Days to plot before end date.
+  `--startdate`     Plot data starting from this date (YYYY-MM-DD)
+  `--enddate`       Plot data until this date (YYYY-MM-DD)
+  `--requestsize`   Response size for which data is plotted (from: small, 
+                    medium, large, verylarge, huge)
+  `--markers`       Show data markers in plot.
+
+
+Example call:
+
+````
+python plot_node_requests_over_time.py \
+    --id=/path/to/resultfiles \
+    --od=/path/to/plots \
+    --of=eida_node_performance_over_time_last_60_days.png \
+    --daysbefore=60 \
+    --backend=png --markers
+````
+
+
+
+
+
+
