@@ -10,12 +10,16 @@ This file is part of the EIDA webservice performance tests.
 
 Uses ObsPy ArcLink client.
 
+Uses:
+    singletony          https://github.com/andrew-azarov/singletony
+
 """
 
 import datetime
 import gzip
 import io
 import json
+import logging
 import os
 import random
 import requests
@@ -39,6 +43,12 @@ from eidanodetest import settings
 from eidanodetest import utils
 
 from eidanodetest.thirdparty.singletony import Singlet
+
+
+# logging
+LOG_FILE_NAME = 'eidasinglenodetest.log'
+DEFAULT_LOG_FORMAT = "%(asctime)s %(message)s"
+LOG = logging.getLogger()
 
 
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_DATE = '%Y%m%d'
@@ -134,6 +144,7 @@ DEFINE_string('services', '', 'Comma-separated list of services to be tested:\
     get,post,federator,arclink')
 DEFINE_string('of', '', 'Output file')
 DEFINE_string('od', '', 'Output directory')
+DEFINE_string('ld', '', 'Logging directory')
 DEFINE_string(
     'email', ARCLINK_USER_EMAIL, 
     'E-mail address of user running the test (for ArcLink)')
@@ -156,14 +167,21 @@ def main():
     global COMMANDLINE_PAR
     set_commandline_parameters()
     
+    # logging - always overwrite last logfile
+    logpath = utils.get_outpath(LOG_FILE_NAME, FLAGS.ld)
+    logging.basicConfig(
+        level=logging.INFO, format=DEFAULT_LOG_FORMAT, filename=logpath, 
+        filemode='w')
+    
+    
     # init result dict
     result = init_result_dict()
     
     for time_int_category in COMMANDLINE_PAR['the_responsesize_list']:
         time_cat_info = TEST_TIME_INTERVALS[time_int_category]
         
-        print "\n\n===== testing {} time intervals =====".format(
-            time_int_category)
+        LOG.info("===== testing {} time intervals =====".format(
+            time_int_category))
         
         # make iterations outer loop so that there is some time
         # between requests for the same node
@@ -175,8 +193,8 @@ def main():
             
         for it in xrange(iteration_count):
             
-            print "\n\n========== ITERATION {} of {} ==========".format(
-                it + 1, iteration_count)
+            LOG.info("========== ITERATION {} of {} ==========".format(
+                it + 1, iteration_count))
  
             # iterate over nodes
             for node, node_par in node_generator():
@@ -205,8 +223,8 @@ def main():
                         # waveform, station, etc
                         for service in params['services']:
                                 
-                            print "\n\nquerying ARCLINK: %s" % (
-                                node_par['services']['arclink']['server'])
+                            LOG.info("querying ARCLINK: %s" % (
+                                node_par['services']['arclink']['server']))
                             
                             # check empty loc, wildcard *
                             # no comma-separated list allowed 
@@ -214,7 +232,7 @@ def main():
                             arclink_payload = convert_payload_to_arclink(
                                 payload, node_par['testquerysncls'])
 
-                            print arclink_payload
+                            LOG.info(arclink_payload)
                                 
                             # start timer
                             t_start = time.time()
@@ -245,7 +263,7 @@ def main():
                             except Exception, e:
                                     
                                 error_msg = "Arclink error: %s" % e
-                                print error_msg
+                                LOG.error(error_msg)
                                 continue
                                 
                             # time it
@@ -285,8 +303,8 @@ def main():
                                 endpoint = "%s/fdsnws/%s/1/query" % (
                                     server, service)
                                     
-                                print "\n\nquerying HTTP {}: {}".format(
-                                    method.upper(), endpoint)
+                                LOG.info("querying HTTP {}: {}".format(
+                                    method.upper(), endpoint))
                                 
                                 if method in ('get', 'federator'):
                                         
@@ -310,10 +328,10 @@ def main():
                                     except requests.exceptions.ConnectionError:
                                             
                                         error_msg = "error: no connection"
-                                        print error_msg
+                                        LOG.error(error_msg)
                                         continue
                                         
-                                    print "url: %s" % response.url
+                                    LOG.info("url: {}".format(response.url))
                                         
                                 elif method == 'post':
                                         
@@ -321,7 +339,7 @@ def main():
                                     postdata = convert_payload_to_postdata(
                                         payload)
                                         
-                                    print postdata
+                                    LOG.info(postdata)
                                         
                                     # no cached version
                                     #headers = {
@@ -343,18 +361,18 @@ def main():
                                     except requests.exceptions.ConnectionError:
                                             
                                         error_msg = "error: no connection"
-                                        print error_msg
+                                        LOG.error(error_msg)
                                         continue
                                     
                                 else:
-                                    print "method {} not supported".format(
-                                        method)
+                                    LOG.info("method {} not supported".format(
+                                        method))
                                     continue
                                     
                                 if not response.ok:
                                     error_msg = "service failed with "\
                                         "code %s" % (response.status_code)
-                                    print error_msg
+                                    LOG.error(error_msg)
                                     continue
 
                                 # time it
@@ -399,11 +417,11 @@ def main():
                         
                         if write_to['throughput']:
                     
-                            print "\n----- {}: {}\n".format(
-                                node, base_loc['params'])
+                            LOG.info("----- {}: {}\n".format(
+                                node, base_loc['params']))
                             
-                            print "result size (MiB): %.3f" % (
-                                base_loc['length'] / (1000.0 * 1000.0))
+                            LOG.info("result size (MiB): %.3f" % (
+                                base_loc['length'] / (1000.0 * 1000.0)))
             
                             time_median = numpy.median(write_to['time'])
                             time_min = min(write_to['time'])
@@ -413,11 +431,11 @@ def main():
                             tp_min = min(write_to['throughput'])
                             tp_max = max(write_to['throughput'])
                             
-                            print "t_req med/min/max (sec): %.3f %.3f %.3f" % (
-                                time_median, time_min, time_max)
+                            LOG.info("t_req med/min/max (sec): %.3f %.3f %.3f" % (
+                                time_median, time_min, time_max))
                             
-                            print "Mbits_per_sec med/min/max: %.1f %.1f %.1f"\
-                                % (tp_median, tp_min, tp_max)
+                            LOG.info("Mbits_per_sec med/min/max: %.1f %.1f %.1f"\
+                                % (tp_median, tp_min, tp_max))
                             
                             if write_to['latency']:
                                 
@@ -425,8 +443,8 @@ def main():
                                 la_min = min(write_to['latency'])
                                 la_max = max(write_to['latency'])
                                 
-                                print "latency med/min/max (sec): %.1f %.1f "\
-                                    "%.1f" % (la_median, la_min, la_max)
+                                LOG.info("latency med/min/max (sec): %.1f "\
+                                    "%.1f %.1f" % (la_median, la_min, la_max))
                             
                                 stats_to['stats'] = \
                                     dict(
@@ -604,8 +622,8 @@ def store_result(
     service, method='', latency=None):
                         
     mbits_per_sec = 8 * length_bytes / (t_req * 1000 * 1000)
-    print "%.3f MiB in %.2f seconds, %.2f Mbits/s" % (
-        length_bytes / (1000.0 * 1000.0), t_req, mbits_per_sec)
+    LOG.info("%.3f MiB in %.2f seconds, %.2f Mbits/s" % (
+        length_bytes / (1000.0 * 1000.0), t_req, mbits_per_sec))
                         
     result[time_int_category][protocol][service]['params'] = payload
     result[time_int_category][protocol][service]['length'] = length_bytes
@@ -625,7 +643,7 @@ def store_result(
 
 
 def set_commandline_parameters():
-    
+
     if FLAGS.nodes:
         COMMANDLINE_PAR['the_node_list'] = [
             x.strip() for x in FLAGS.nodes.split(',')]
