@@ -38,6 +38,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from eidanodetest import settings
 from eidanodetest import utils
 
+from eidanodetest.thirdparty.singletony import Singlet
+
+
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_DATE = '%Y%m%d'
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_SECOND = '%Y%m%d-%H%M%S'
 DATETIME_TIMESTAMP_FORMAT_FOR_FILENAME_MICROSECOND = '%Y%m%d-%H%M%S-%f'
@@ -143,6 +146,9 @@ DEFINE_integer(
     'Number of iterations for verylarge and huge response sizes')
 
 
+# allow only one instance to run at the same time
+me = Singlet()
+    
 def main():
     
     _ = FLAGS(sys.argv)
