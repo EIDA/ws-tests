@@ -20,6 +20,9 @@ Resulting statistics on the test queries is written to a result
 gzipped JSON file (file is only written after all queries, so be sure to wait 
 until all requests have been performed).
 
+The script writes to a log file that is overwritten on every new run. Only
+one instance of the script can run at the same time.
+
 The full suite can be run as follows:
 
 ````
@@ -32,6 +35,8 @@ requests).
 Command line options:
 
   `--od`            Output directory (default: current directory).
+
+  `--ld`            Log directory (default: current directory).
                     
   `--of`            Output filename (there is a default including date/time).
                     Should have the extension `.json.gz` in order to make plot
@@ -64,8 +69,8 @@ Example call:
 python eida_test_single_node_request.py --responsesize=large \
     --excludenodes=iris,ncedc,usp \
     --services=post,arclink,federator --email=jane.doe@example.com \
-    --itersmall=6 \
-    --od=/path/to/resultfiles
+    --itersmall=6 --od=/path/to/resultfiles \
+    --ld=/path/to/logfile
 ````
 
 Plotting of results over time

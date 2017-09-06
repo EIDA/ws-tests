@@ -7,14 +7,13 @@ USERMAIL=fabian@sed.ethz.ch
 DEPLOYDIR=/home/pikett/eida/ws-tests/eidanodetest/bin
 DATADIR=/home/pikett/eida/data/eidanodetest/data
 PLOTDIR=/home/pikett/eida/data/eidanodetest/plot
+LOGDIR=/home/pikett/eida/data/eidanodetest/log
 
 . ${PROFILE}
 
 python ${DEPLOYDIR}/eida_test_single_node_request.py --responsesize=large \
-	--excludenodes=iris,ncedc,usp \
-	--services=post,arclink,federator --email=${USERMAIL} \
-	--itersmall=6 \
-	--od=${DATADIR}
+    --excludenodes=iris,ncedc,usp --services=post,arclink,federator \
+    --email=${USERMAIL} --itersmall=6 --od=${DATADIR} --ld=${LOGDIR}
 
 sleep 5;
 
