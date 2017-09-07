@@ -5,11 +5,21 @@ This file is part of the EIDA webservice performance tests.
 
 """
 
+import datetime
 import gzip
 import json
 import os
+import re
 
 from eidanodetest import settings
+
+
+FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
+
+FILENAME_DATETIME_PATTERN = re.compile(
+    r'^.+(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2}).*$')
+FILENAME_DATETIME_PATTERN_GLOB = '*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-'\
+    '[0-9][0-9][0-9][0-9][0-9][0-9]*'
 
 
 EIDA_TEXT_COLOR_LINESTYLE = ('b', '-')
@@ -74,3 +84,39 @@ def get_node_text_color_linestyle(node):
        color_ls = UNKNOWN_TEXT_COLOR_LINESTYLE
 
     return color_ls
+
+
+def set_title(title, timestamp):
+    
+    if timestamp is not None:
+        title = u'{}\n{}'.format(title, timestamp)
+        
+    return title
+
+
+def get_timestamp_from_filename(path):
+    
+    timestamp = None
+    
+    # get datetime filename tail
+    try:
+        m = FILENAME_DATETIME_PATTERN.search(path)
+        
+        # tzinfo=timezones.UTC
+        timestamp = datetime.datetime(
+            year=int(m.group(1)),
+            month=int(m.group(2)),
+            day=int(m.group(3)),
+            hour=int(m.group(4)),
+            minute=int(m.group(5)),
+            second=int(m.group(6)))
+    
+    except Exception:
+        pass
+    
+    return timestamp
+
+
+def is_valid_timestamp(timestamp, first, last):
+    return (timestamp >= first and timestamp <= last)
+

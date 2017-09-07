@@ -177,14 +177,6 @@ PYPLOT = sys.modules['matplotlib.pyplot']
 
 SIZE_KEYS = ('small', 'medium', 'large', 'verylarge', 'huge')
 
-FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
-
-FILENAME_DATETIME_PATTERN = re.compile(
-    r'^.+(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2}).*$')
-FILENAME_DATETIME_PATTERN_GLOB = '*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-'\
-    '[0-9][0-9][0-9][0-9][0-9][0-9]*'
-
-
 SIZE_KEY = 'large'
 
 
@@ -215,11 +207,14 @@ def main():
     # iterates through files with ascending time stamps
     # (earliest first)
     source_file_iterator = sorted(
-        glob.iglob(os.path.join(FLAGS.id, FILENAME_DATETIME_PATTERN_GLOB)))
+        glob.iglob(
+            os.path.join(FLAGS.id, utils.FILENAME_DATETIME_PATTERN_GLOB)))
     loop_file_count = len(source_file_iterator)
     
-    first_timestamp = get_timestamp_from_filename(source_file_iterator[0])
-    last_timestamp = get_timestamp_from_filename(source_file_iterator[-1])
+    first_timestamp = utils.get_timestamp_from_filename(
+        source_file_iterator[0])
+    last_timestamp = utils.get_timestamp_from_filename(
+        utils.source_file_iterator[-1])
     
     print "checking {} source files from {} until {}".format(
         loop_file_count, first_timestamp, last_timestamp)
@@ -272,10 +267,11 @@ def main():
     for file_idx, source_path in enumerate(source_file_iterator):
         
         # get datetime filename tail
-        timestamp = get_timestamp_from_filename(source_path)
+        timestamp = utils.get_timestamp_from_filename(source_path)
 
         # check if timestamp in valid range
-        if not is_valid_timestamp(timestamp, first_timestamp, last_timestamp):
+        if not utils.is_valid_timestamp(
+                timestamp, first_timestamp, last_timestamp):
             continue
         
         try:
@@ -286,7 +282,8 @@ def main():
             continue
         
         timestamps.append(timestamp)
-        last_filetail = FILETAIL_DATETIME_PATTERN.search(source_path).group(1)
+        last_filetail = utils.FILETAIL_DATETIME_PATTERN.search(
+            source_path).group(1)
         
         for node, n_res in d.items():
                 
@@ -529,27 +526,6 @@ def put_node_label(the_ax, node, xmin, xmax, ymin, ymax):
     the_ax.text(
         xmin, ymin, node, color='k', horizontalalignment='left', 
         verticalalignment='bottom')
-
-
-def get_timestamp_from_filename(path):
-    
-    # get datetime filename tail
-    m = FILENAME_DATETIME_PATTERN.search(path)
-        
-    # tzinfo=timezones.UTC
-    timestamp = datetime.datetime(
-        year=int(m.group(1)),
-        month=int(m.group(2)),
-        day=int(m.group(3)),
-        hour=int(m.group(4)),
-        minute=int(m.group(5)),
-        second=int(m.group(6)))
-    
-    return timestamp
-
-
-def is_valid_timestamp(timestamp, first, last):
-    return (timestamp >= first and timestamp <= last)
 
 
 if __name__ == '__main__':

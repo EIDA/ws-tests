@@ -295,7 +295,8 @@ def main():
                                     if node not in settings.EIDA_NODES:
                                         continue
                                     else:
-                                        server = settings.EIDA_FEDERATOR_BASE_URL
+                                        server = \
+                                            settings.EIDA_FEDERATOR_BASE_URL
                                 else:
                                     server = node_par['services']['fdsn']\
                                         ['server']

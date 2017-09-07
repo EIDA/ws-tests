@@ -187,8 +187,6 @@ PYPLOT = sys.modules['matplotlib.pyplot']
 
 SIZE_KEYS = ('small', 'medium', 'large', 'verylarge', 'huge')
 
-FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
-
 
 DEFINE_string('backend', PDF_BACKEND_DEFAULT, 'Plot backend (default: pdf')
 DEFINE_string('infile', '', 'Input file')
@@ -207,12 +205,15 @@ def main():
     d = utils.load_json(FLAGS.infile)
     
     # get datetime filename tail
-    m = FILETAIL_DATETIME_PATTERN.search(FLAGS.infile)
+    m = utils.FILETAIL_DATETIME_PATTERN.search(FLAGS.infile)
     if m:    
         filetail = m.group(1)
     else:
         filetail = ''
     
+    # get datetime filename tail
+    timestamp = utils.get_timestamp_from_filename(FLAGS.infile)
+        
     data = {}
     
     for node in d:
@@ -289,19 +290,22 @@ def main():
                     data[node][plot_type]['ord'].append(
                         n_res['result'][sk]['arclink']['waveform']['stats']\
                             ['throughput']['median'])
-                   
+        
+        title = utils.set_title(plot_data['title'], timestamp)
+        
         make_plot_allnodes(
-            plot_data['filename'], data, plot_data['title'], plot_type, 
-            filetail)
+            plot_data['filename'], data, title, plot_type, filetail)
         
     for node, n_res in data.items():
         make_plot_node(
-            "{}_{}_{}".format(node, 'http_arclink', filetail), n_res, node)
+            "{}_{}_{}".format(node, 'http_arclink', filetail), n_res, node, 
+            timestamp)
         
-    make_compare_plot_allnodes("allnodes_compare_{}".format(filetail), data)
+    make_compare_plot_allnodes(
+        "allnodes_compare_{}".format(filetail), data, timestamp)
 
 
-def make_compare_plot_allnodes(outfile, data):
+def make_compare_plot_allnodes(outfile, data, timestamp):
     
     print "plotting all node comparison"
     
@@ -318,7 +322,8 @@ def make_compare_plot_allnodes(outfile, data):
     the_bigax = figure.add_subplot(111) 
     the_bigax2 = the_bigax.twinx()
     
-    the_bigax.set_title(BIG_TITLE, fontdict={'size': TITLE_FONTSIZE})
+    title = utils.set_title(BIG_TITLE, timestamp)
+    the_bigax.set_title(title, fontdict={'size': TITLE_FONTSIZE})
     
     # Turn off axis lines and ticks of the big subplot
     for the_ax in (the_bigax, the_bigax2):
@@ -415,7 +420,7 @@ def make_compare_plot_allnodes(outfile, data):
     PYPLOT.close(figure)
 
 
-def make_plot_node(outfile, data, node):
+def make_plot_node(outfile, data, node, timestamp):
     
     print "making all plots for node {}".format(node)
     
@@ -426,9 +431,10 @@ def make_plot_node(outfile, data, node):
     
     the_ax = figure.add_subplot(1, 1, 1)
     
-    figure.suptitle(
-        "{} ({})".format(utils.get_node_name(node), node.upper()), 
-        fontdict={'size': TITLE_FONTSIZE})
+    title = utils.set_title(
+        "{} ({})".format(utils.get_node_name(node), node.upper()), timestamp)
+    
+    figure.suptitle(title, fontdict={'size': TITLE_FONTSIZE})
 
     for idx, plot_type in enumerate(PLOTS):
         
