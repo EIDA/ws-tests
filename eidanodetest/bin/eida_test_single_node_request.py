@@ -222,9 +222,11 @@ def main():
 
                         # waveform, station, etc
                         for service in params['services']:
-                                
-                            LOG.info("querying ARCLINK: %s" % (
-                                node_par['services']['arclink']['server']))
+                            
+                            arclink_server, arclink_port = \
+                                get_arclink_connection(node_par)
+                            
+                            LOG.info("querying ARCLINK: %s" % (arclink_server))
                             
                             # check empty loc, wildcard *
                             # no comma-separated list allowed 
@@ -239,10 +241,7 @@ def main():
                             
                             try:
                                 client = ArclinkClient(
-                                    host=node_par['services']['arclink']\
-                                        ['server'],
-                                    port=node_par['services']['arclink']\
-                                        ['port'],
+                                    host=arclink_server,port=arclink_port,
                                     user=FLAGS.email)
                                 
                                 with io.BytesIO() as bf:
@@ -298,8 +297,7 @@ def main():
                                         server = \
                                             settings.EIDA_FEDERATOR_BASE_URL
                                 else:
-                                    server = node_par['services']['fdsn']\
-                                        ['server']
+                                    server = get_fdsnws_connection(node_par)
                                     
                                 endpoint = "%s/fdsnws/%s/1/query" % (
                                     server, service)
@@ -645,13 +643,48 @@ def store_result(
 
 def set_commandline_parameters():
 
+    COMMANDLINE_PAR['alternate_servers'] = dict(fdsnws=dict(), arclink=dict())
+    
     if FLAGS.nodes:
-        COMMANDLINE_PAR['the_node_list'] = [
-            x.strip() for x in FLAGS.nodes.split(',')]
         
-        for x in COMMANDLINE_PAR['the_node_list']:
-            if not(x in settings.EIDA_NODES or x in settings.OTHER_SERVERS):
-                raise ValueError, "node name {} unknown".format(x)
+        COMMANDLINE_PAR['the_node_list'] = []
+        
+        for node_info in FLAGS.nodes.split(','):
+            
+            # check for alternate servers
+            node_servers = node_info.split('=')
+            
+            if not(
+                node_servers[0] in settings.EIDA_NODES or \
+                node_servers[0] in settings.OTHER_SERVERS):
+                
+                raise ValueError, "node name {} unknown".format(
+                    node_servers[0])
+            
+            # node name
+            COMMANDLINE_PAR['the_node_list'].append(node_servers[0].strip())
+            
+            if len(node_servers) > 1:
+                
+                # alternate fdsnws server 
+                if node_servers[1]:
+                    COMMANDLINE_PAR['alternate_servers']['fdsnws']['server'] = \
+                        node_servers[1].strip()
+            
+                if len(node_servers) > 2:
+                    
+                    # alternate arclink server 
+                    if node_servers[2]:
+                        
+                        arclink_server, arclink_port = \
+                            node_servers[2].strip().split(':')
+                        
+                        COMMANDLINE_PAR['alternate_servers']['arclink']\
+                            ['server'] = arclink_server
+                        
+                        COMMANDLINE_PAR['alternate_servers']['arclink']\
+                            ['port'] = int(arclink_port)
+          
     else:
         
         COMMANDLINE_PAR['the_node_list'] = []
@@ -687,8 +720,33 @@ def set_commandline_parameters():
             
     else:
         COMMANDLINE_PAR['the_services_list'] = list(SERVICES_TO_TEST)
+
+        
+def get_arclink_connection(node_par):
+    
+        # check if alternate server is specified
+        server = COMMANDLINE_PAR['alternate_servers']['arclink'].get('server')
+        port = COMMANDLINE_PAR['alternate_servers']['arclink'].get('port')
+        
+        if server is None or port is None:
+            return (
+                node_par['services']['arclink']['server'],
+                node_par['services']['arclink']['port'])
+        else:
+            return server, port
         
         
+def get_fdsnws_connection(node_par):
+    
+        # check if alternate server is specified
+        server = COMMANDLINE_PAR['alternate_servers']['fdsnws'].get('server')
+        
+        if server is None:
+            return node_par['services']['fdsn']['server']
+        else:
+            return server
+
+
 if __name__ == '__main__':
     COMMANDLINE_PAR = {}
     main()
