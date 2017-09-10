@@ -214,7 +214,7 @@ def main():
     first_timestamp = utils.get_timestamp_from_filename(
         source_file_iterator[0])
     last_timestamp = utils.get_timestamp_from_filename(
-        utils.source_file_iterator[-1])
+        source_file_iterator[-1])
     
     print "checking {} source files from {} until {}".format(
         loop_file_count, first_timestamp, last_timestamp)
