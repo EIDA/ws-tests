@@ -228,7 +228,10 @@ def main():
         for node, n_res in d.items():
             
             for sk in SIZE_KEYS:
-                    
+                
+                if not sk in n_res['result']:
+                    continue
+                
                 # http get, dataselect
                 if plot_type == 'dataselect-get' and \
                     'length' in n_res['result'][sk]['http']['dataselect'] and \
