@@ -45,6 +45,7 @@ Command line options:
   `--nodes`         Comma-separated list of nodes
                     (gfz, odc, ethz, resif, ipgp, ingv, noa, koeri, niep, lmu, 
                     bgr, iris, ncedc, isp; default: all)
+                    
 
   `--excludenodes`  Comma-separated list of nodes to be excluded (mutually
                     exclusive with --nodes)
@@ -62,6 +63,22 @@ Command line options:
 
   `--iterlarge`     Number of iterations for verylarge and huge response size
                     (default: 5)
+
+Alternative servers:
+
+With the `--nodes` flag, you can specify non-standard servers for FDSNWS and
+ArcLink per node, separated by `=` characters. The syntax is
+
+````
+--nodes="eth=http://eida2.ethz.ch=eida2.ethz.ch:18001"
+````
+
+Alternative servers for FDSNWS and ArcLink can be specified separately:
+
+````
+--nodes="eth=http://eida2.ethz.ch" (FDSNWS only)
+--nodes="eth==eida2.ethz.ch:18001" (ArcLink only)
+````
 
 Example call:
 
