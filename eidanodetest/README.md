@@ -32,7 +32,7 @@ python eida_test_single_node_request.py --email=jane.doe@example.com
 Please use your own e-mail address (this is only relevant for ArcLink 
 requests).
 
-Command line options:
+**Command line options:**
 
   `--od`            Output directory (default: current directory).
 
@@ -64,7 +64,7 @@ Command line options:
   `--iterlarge`     Number of iterations for verylarge and huge response size
                     (default: 5)
 
-Alternative servers:
+**Alternative servers:**
 
 With the `--nodes` flag, you can specify non-standard servers for FDSNWS and
 ArcLink per node, separated by `=` characters. The syntax is
@@ -80,7 +80,7 @@ Alternative servers for FDSNWS and ArcLink can be specified separately:
 --nodes="eth==eida2.ethz.ch:18001" (ArcLink only)
 ````
 
-Example call:
+**Example call:**
 
 ````
 python eida_test_single_node_request.py --responsesize=large \
@@ -99,7 +99,7 @@ Result files are in `/path/to/resultfiles`, plots go to `/path/to/plots`.
 plot_node_requests_over_time.py
 ````
 
-Command line options:
+**Command line options:**
 
   `--id`            Input directory (required).
   
@@ -125,7 +125,7 @@ Command line options:
   `--markers`       Show data markers in plot.
 
 
-Example call:
+**Example call:**
 
 ````
 python plot_node_requests_over_time.py \
