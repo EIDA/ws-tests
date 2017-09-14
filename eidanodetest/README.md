@@ -90,13 +90,43 @@ python eida_test_single_node_request.py --responsesize=large \
     --ld=/path/to/logfile
 ````
 
+
+Plotting of results for a single test run
+-----------------------------------------
+
+Creates a comparison plot of all methods (FDSNWS GET/POST, ArcLink, Federator)
+per node, and comparison plots of node performance per method.
+
+````
+plot_single_node_requests.py --infile=/path/to/resultfile.json.gz
+````
+
+**Command line options:**
+
+  `--infile`        Input file (required, .json or .json.gz).
+  
+  `--od`            Output directory (default: current directory).
+  
+  `--backend`       Plotting backend (from installed matplotlib backends,
+                    default: pdf).
+
+**Example call:**
+
+````
+python plot_single_node_requests.py \
+    --infile=/path/to/resultfile.json.gz \
+    --od=/path/to/plots \
+    --backend=png
+````
+
+
 Plotting of results over time
 -----------------------------
 
 Result files are in `/path/to/resultfiles`, plots go to `/path/to/plots`.
 
 ````
-plot_node_requests_over_time.py
+plot_node_requests_over_time.py --id=/path/to/resultfiles
 ````
 
 **Command line options:**
