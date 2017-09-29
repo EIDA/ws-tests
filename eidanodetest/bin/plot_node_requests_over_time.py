@@ -236,6 +236,7 @@ def main():
     if FLAGS.daysbefore > 0:
         if FLAGS.daysafter > 0:
             error_msg = "--daysafter is mutually exclusive with --daysbefore"
+            raise RuntimeError, error_msg
             
         first_timestamp = last_timestamp - datetime.timedelta(
             days=FLAGS.daysbefore)
@@ -243,6 +244,7 @@ def main():
     if FLAGS.daysafter > 0:
         if FLAGS.daysbefore > 0:
             error_msg = "--daysafter is mutually exclusive with --daysbefore"
+            raise RuntimeError, error_msg
             
         last_timestamp = first_timestamp + datetime.timedelta(
             days=FLAGS.daysafter)
