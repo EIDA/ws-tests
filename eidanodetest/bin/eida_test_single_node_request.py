@@ -39,10 +39,11 @@ from obspy.clients.arclink.client import Client as ArclinkClient
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from eidanodetest import settings
+#from eidanodetest import settings
 from eidanodetest import utils
-
 from eidanodetest.thirdparty.singletony import Singlet
+
+from mediator import settings
 
 
 # logging
