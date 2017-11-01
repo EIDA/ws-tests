@@ -11,7 +11,6 @@ import json
 import os
 import re
 
-#from eidanodetest import settings
 from mediator import settings
 
 FILETAIL_DATETIME_PATTERN = re.compile(r'^.+(\d{8}-\d{6}).*$')
